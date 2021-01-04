@@ -1,78 +1,120 @@
-import React from 'react';
-import {Text,View, Alert , FlatList} from 'react-native'
-import axios from 'axios';
-import {ListItem} from 'react-native-elements';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import React, { Component } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Alert,
+  SafeAreaView
+} from "react-native";
+import { ListItem } from "react-native-elements";
+import axios from "axios";
 
+export default class HomeScreen extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      listData: [],
+      url: "http://02785ab2e253.ngrok.io"
+    };
+  }
 
+  componentDidMount() {
+    this.getPlanets();
+  }
 
-export default class HomeScreen extends React.Component{
-    constructor(props){
-        super(props);
-        this.state= {
-            listData :[],
-            url : "http://02785ab2e253.ngrok.io"
-        }
-        
-    }
+  getPlanets = () => {
+    const { url } = this.state;
+    axios
+      .get(url)
+      .then(response => {
+        return this.setState({
+          listData: response.data.Data
+        });
+      })
+      .catch(error => {
+        Alert.alert(error.message);
+      });
+  };
 
-    getPlanets =()=>{
+  renderItem = ({ item, index }) => (
+    <ListItem
+      key={index}
+      title={`Planet : ${item.name}`}
+      subtitle={`Distance from earth : ${item.distance_from_earth}`}
+      titleStyle={styles.title}
+      containerStyle={styles.listContainer}
+      bottomDivider
+      chevron
+      onPress={() =>
+        this.props.navigation.navigate("Detail", { planet_name: item.name })
+      }
+    />
+  );
 
-        const {url} = this.state;
-        axios.get(url).then(response =>{
-            return this.setState({listData : response.data.data})
-        })
-        .catch(error=>{
-            Alert.alert(error.message)
-        })
+  keyExtractor = (item, index) => index.toString();
 
-    }
-
-    componentDidMount(){
-        this.getPlanets();
-
-    }
-
-    keyExtractor=(item,index )=> index.toString();
-
-    renderItem=({item,index})=>{
-        <ListItem 
-            key ={index}
-            title = {'Planet : ${item.name}'}
-
-            subtitle = {'Disrance from earth: ${item.distance_from_earth'}
-
-            onPress={()=>this.props.navigation.navigate("DetailScreen"), {planet_name : item.name}}
-        />
-    }
-
-    render(){
-        const { listData } = this.state;
+  render() {
+    const { listData } = this.state;
 
     if (listData.length === 0) {
       return (
-        <View style = {{flex: 1, justifyContent: "center", alignItems: "center"}}>
+        <View style={styles.emptyContainer}>
           <Text>Loading</Text>
         </View>
       );
     }
-        
-            return(
-                <View style ={{backgroundColor:'#000000'}}>
-                    <SafeAreaView/>
-                    <View style = {{flex: 0.1, justifyContent: "center", alignItems: "center"}}>
-                    <Text>
-                        This is the home screen
-                    </Text>
-                    </View>
-                    <View style = {{flex: 0.9}}>
-                    <FlatList
-                    data={this.state.listData}
-                    renderItem= {this.renderItem}
-                    keyExtractor= {this.keyExtractor}
-                    />
-                    </View>
-                </View>
-            );
-    }
+
+    return (
+      <View style={styles.container}>
+        <SafeAreaView />
+        <View style={styles.upperContainer}>
+          <Text style={styles.headerText}>Planets World</Text>
+        </View>
+        <View style={styles.lowerContainer}>
+          <FlatList
+            keyExtractor={this.keyExtractor}
+            data={this.state.listData}
+            renderItem={this.renderItem}
+          />
+        </View>
+      </View>
+    );
+  }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#edc988"
+  },
+  upperContainer: {
+    flex: 0.1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  headerText: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#132743"
+  },
+  lowerContainer: {
+    flex: 0.9
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  emptyContainerText: {
+    fontSize: 20
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#d7385e"
+  },
+  listContainer: {
+    backgroundColor: "#eeecda"
+  }
+});
